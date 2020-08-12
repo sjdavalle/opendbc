@@ -49,19 +49,18 @@ ARCH = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()  # pyl
 if ARCH == "aarch64":
   extra_compile_args += ["-Wno-deprecated-register"]
 
-if CROSS_COMPILATION:
-  extra_compile_args += ["-Wno-deprecated-register"]
-  extra_compile_args += sysroot_args
-
 if platform.system() == "Darwin":
   libdbc = "libdbc.dylib"
 else:
   libdbc = "libdbc.so"
 
-extra_link_args = [os.path.join(BASEDIR, 'opendbc', 'can', libdbc)]
 if CROSS_COMPILATION:
-  extra_link_args += ['-L/usr/aarch64-linux-gnu/lib']
+  extra_compile_args += ["-Wno-deprecated-register"]
+  extra_compile_args += sysroot_args
+  extra_link_args = ['-L/usr/aarch64-linux-gnu/lib']
   extra_link_args += ['--prefix=$HOME/linker_bin/']
+else:
+  extra_link_args = [os.path.join(BASEDIR, 'opendbc', 'can', libdbc)]
   
 include_dirs = [
   BASEDIR,
@@ -80,6 +79,8 @@ setup(name='CAN parser',
           extra_compile_args=extra_compile_args,
           include_dirs=include_dirs,
           extra_link_args=extra_link_args,
+          libraries=[':libdbc.so'],
+          library_dirs=['.'],
         ),
         annotate=ANNOTATE
       ),
